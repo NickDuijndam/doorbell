@@ -1,0 +1,16 @@
+# IDE Files
+*.iml
+/.idea/
+
+/node_modules/
+
+# Environment files
+.env
+
+# Build artifacts
+/dist/
+/.tmp/
+
+# Database files
+*.db
+*.sqlite
