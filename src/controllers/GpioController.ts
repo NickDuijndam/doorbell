@@ -14,7 +14,7 @@ class GpioController implements Controller {
 	}
 
 	private setButton = async (req: Request, res: Response) => {
-		this.gpio.poll(parseInt(req.params['value']) === 1 ? 0 : 1);
+		this.gpio.poll(this.gpio.buttonPin, parseInt(req.params['value']) === 1 ? 0 : 1);
 		res.sendStatus(204);
 	};
 }

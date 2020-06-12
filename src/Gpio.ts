@@ -1,41 +1,39 @@
 import rpio from 'rpio';
 
 class Gpio {
-	private readonly mock: boolean;
 	private SLEEP = 20;
 
-	/* Pin constants in the GPIO button mapping format */
-	private BUTTON_PIN = 26;
-	private BELL_PIN = 19;
+	buttonPin: number;
+	relayPin: number;
 
 	/* value used to debounce the button press */
 	private previousState: number | null = null;
-	private tasks: GPIOTask[] = [];
+	private tasks: GpioTask[] = [];
 
-	constructor(mock: boolean = false) {
-		this.mock = mock;
+	constructor(mapping: GpioMapping, buttonPin: number, relayPin: number) {
+		rpio.init({ mapping });
 
-		rpio.init({ mapping: 'gpio' });
+		this.buttonPin = buttonPin;
+		this.relayPin = relayPin;
 
-		rpio.open(this.BUTTON_PIN, rpio.INPUT, rpio.PULL_UP);
-		rpio.open(this.BELL_PIN, rpio.OUTPUT, rpio.LOW);
+		rpio.open(this.buttonPin, rpio.INPUT, rpio.PULL_UP);
+		rpio.open(this.relayPin, rpio.OUTPUT, rpio.LOW);
 
-		rpio.poll(this.BUTTON_PIN, this.poll.bind(this), rpio.POLL_BOTH);
+		rpio.poll(this.buttonPin, this.poll.bind(this), rpio.POLL_BOTH);
 	}
 
-	poll(pin: number) {
+	poll(pin: number, mockValue?: number) {
 		rpio.msleep(this.SLEEP);
 
-		/* use the pin number as a value when mocked */
-		const value = !this.mock ? rpio.read(pin) : pin;
+		const value = mockValue || rpio.read(pin);
 
 		if (this.previousState != null && this.previousState == value) {
 			return;
 		}
 
 		this.previousState = value;
-		// TODO: Debounce bell signal to protect relay
-		rpio.write(this.BELL_PIN, value ? rpio.LOW : rpio.HIGH);
+		// TODO: Debounce relay signal to prevent relay wear / damage
+		rpio.write(this.relayPin, value ? rpio.LOW : rpio.HIGH);
 
 		this.tasks.filter((task) =>
 			task.direction === rpio.POLL_BOTH ||
@@ -44,17 +42,19 @@ class Gpio {
 		).forEach((task) => task.task(value));
 	}
 
-	addTask(task: GPIOTask) {
+	addTask(task: GpioTask) {
 		this.tasks.push(task);
 	}
 
 	dispose() {
-		rpio.close(this.BUTTON_PIN);
-		rpio.close(this.BELL_PIN);
+		rpio.close(this.buttonPin);
+		rpio.close(this.relayPin);
 	}
 }
 
-export interface GPIOTask {
+export type GpioMapping = 'gpio' | 'physical';
+
+export interface GpioTask {
 	direction: number;
 	task: (value: number) => void;
 }

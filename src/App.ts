@@ -1,3 +1,4 @@
+import fs from 'fs';
 import http from 'http';
 import https from 'https';
 import path from 'path';
@@ -9,17 +10,17 @@ import Controller from '@/interfaces/Controller';
 import Subscription from '@/models/Subscription';
 
 class App {
-	enableHttps: boolean = false;
-	app: express.Application
-	httpServer?: http.Server
-	httpsServer?: https.Server
+	private readonly app: express.Application;
+	private readonly appOptions: AppOptions;
+	private httpServer?: http.Server;
+	private httpsServer?: https.Server;
 
-	constructor(controllers: Controller[] = [], enableHttps: boolean = true) {
-		this.enableHttps = enableHttps;
+	constructor(controllers: Controller[], options: AppOptions) {
 		this.app = express();
+		this.appOptions = options;
 
-		this.connectToDatabase();
-		if (enableHttps) {
+		this.connectToDatabase(options.dbLocation);
+		if (options.https?.port && options.https?.privateKeyPath && options.https?.certificatePath) {
 			this.httpsRedirect();
 		}
 		this.serveStaticFiles();
@@ -31,17 +32,31 @@ class App {
 	 */
 	listen() {
 		this.httpServer = http.createServer(this.app);
-		this.httpServer.listen(process.env.HTTP_PORT, () => {
-			console.info(`Listening on port ${process.env.HTTP_PORT}`);
+		this.httpServer.listen(this.appOptions.http.port, () => {
+			console.info(`Listening on port ${this.appOptions.http.port}`);
 		});
 
-		if (this.enableHttps) {
-			//TODO: Add certificates
-			this.httpsServer = https.createServer(this.app);
-			this.httpsServer.listen(process.env.HTTPS_PORT, () => {
-				console.info(`Listening on port ${process.env.HTTPS_PORT}`);
+		const httpsPort = this.appOptions.https?.port;
+		if (httpsPort && this.appOptions.https?.privateKeyPath && this.appOptions.https?.certificatePath) {
+			const credentials = {
+				key: this.appOptions.https?.privateKeyPath ? fs.readFileSync(this.appOptions.https?.privateKeyPath, 'utf8') : undefined,
+				cert: this.appOptions.https?.certificatePath ? fs.readFileSync(this.appOptions.https?.certificatePath, 'utf8') : undefined,
+				ca: this.appOptions.https?.caChainPath ? fs.readFileSync(this.appOptions.https?.caChainPath, 'utf8') : undefined,
+			};
+
+			this.httpsServer = https.createServer(credentials, this.app);
+			this.httpsServer.listen(httpsPort, () => {
+				console.info(`Listening on port ${httpsPort}`);
 			});
 		}
+	}
+
+	/**
+	 * Close webserver
+	 */
+	close() {
+		this.httpServer?.close();
+		this.httpsServer?.close();
 	}
 
 	/**
@@ -76,18 +91,14 @@ class App {
 	}
 
 	/**
-	 * Connect to the SQLite database using the location passed to the environment variables
+	 * Connect to the SQLite database using the given location
 	 */
-	private connectToDatabase() {
-		if (!process.env.DB_LOCATION) {
-			throw Error("Database location not set");
-		}
-
-		console.info(`Reading database from ${path.resolve(process.env.DB_LOCATION)}`);
+	private connectToDatabase(dbLocation: string) {
+		console.info(`Reading database from ${path.resolve(dbLocation)}`);
 		const sequelize = new Sequelize({
 			dialect: 'sqlite',
 			models: [Subscription],
-			storage: process.env.DB_LOCATION,
+			storage: dbLocation,
 		});
 
 		this.runMigrations(sequelize)
@@ -114,6 +125,19 @@ class App {
 			await umzug.up();
 			console.log('All migrations performed successfully');
 		})();
+	}
+}
+
+export interface AppOptions {
+	dbLocation: string;
+	http: {
+		port: number;
+	};
+	https?: {
+		port?: number;
+		privateKeyPath?: string;
+		certificatePath?: string;
+		caChainPath?: string;
 	}
 }
 
