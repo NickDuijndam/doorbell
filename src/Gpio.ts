@@ -10,6 +10,9 @@ class Gpio {
 	private previousState: number | null = null;
 	private tasks: GpioTask[] = [];
 
+	private lastPeriodTriggered?: number = undefined
+	private amountOfTimesTriggered: number = 0;
+
 	constructor(mapping: GpioMapping, buttonPin: number, relayPin: number) {
 		rpio.init({ mapping });
 
@@ -32,8 +35,18 @@ class Gpio {
 		}
 
 		this.previousState = value;
-		// TODO: Debounce relay signal to prevent relay wear / damage
-		rpio.write(this.relayPin, value ? rpio.LOW : rpio.HIGH);
+		const time = new Date().getTime();
+		if (!this.lastPeriodTriggered || time - this.lastPeriodTriggered >= 60000) {
+			this.lastPeriodTriggered = time;
+			this.amountOfTimesTriggered = 1;
+		} else {
+			this.amountOfTimesTriggered += 1;
+		}
+
+		/* Disable the relay if it has been activated more then 8 times in the last minute */
+		if (this.amountOfTimesTriggered < 16) {
+			rpio.write(this.relayPin, value ? rpio.LOW : rpio.HIGH);
+		}
 
 		this.tasks.filter((task) =>
 			task.direction === rpio.POLL_BOTH ||

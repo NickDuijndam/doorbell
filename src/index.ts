@@ -41,7 +41,8 @@ const controllers: Controller[] = [
 ];
 
 /* Setup GPIO mock if the app is running in development mode */
-if (env.isDevelopment) {
+if (process.env.NODE_ENV === 'development') {
+	console.info('Registering mock gpio endpoints');
 	controllers.push(new GpioController(gpio));
 }
 
