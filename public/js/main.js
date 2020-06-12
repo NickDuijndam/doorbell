@@ -57,7 +57,10 @@
 		})
 			.then(subscription => {
 				console.info('User is subscribed:', subscription);
-				updateSubscriptionOnServer(subscription);
+				updateSubscriptionOnServer(subscription).catch(() => {
+					subscription.unsubscribe();
+					messageDiv.textContent = 'An error occurred while subscribing';
+				});
 				isSubscribed = true;
 				updateBtn();
 			})
@@ -114,12 +117,12 @@
 
 	function unsubscribeOnServer(subscription) {
 		if (!subscription) return;
-		serverCall('subscription/unsubscribe', subscription);
+		return serverCall('subscription/unsubscribe', subscription);
 	}
 
 	function updateSubscriptionOnServer(subscription) {
 		if (!subscription) return;
-		serverCall('subscription/subscribe', subscription);
+		return serverCall('subscription/subscribe', subscription);
 	}
 
 	function serverCall(url, body) {
