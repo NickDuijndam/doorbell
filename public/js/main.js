@@ -4,7 +4,7 @@
 	let serviceWorkerRegistration = null;
 	let isSubscribed = false;
 
-	const serverIP = 'http://localhost:8080/api/';
+	const serverIP = `${window.location.href}api/`;
 	const applicationServerPublicKey = 'BHORLZf_Tnq6j9Mbjd5jse2-zkyRPNWrCNK52A52bblA1YL3CvEiavSeIdAbmJh8LLuNlV8YtX5rButrkdzrDFs';
 
 	const notSupportedMessage = 'This browser does not support push notifications!';
