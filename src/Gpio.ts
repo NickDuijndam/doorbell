@@ -20,7 +20,7 @@ class Gpio {
 		rpio.open(this.BUTTON_PIN, rpio.INPUT, rpio.PULL_UP);
 		rpio.open(this.BELL_PIN, rpio.OUTPUT, rpio.LOW);
 
-		rpio.poll(this.BUTTON_PIN, this.poll, rpio.POLL_BOTH);
+		rpio.poll(this.BUTTON_PIN, this.poll.bind(this), rpio.POLL_BOTH);
 	}
 
 	poll(pin: number) {

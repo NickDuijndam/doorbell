@@ -43,7 +43,11 @@ const app = new App(controllers, HTTPS_ENABLED);
 
 /* Dispose of all used resources on process termination */
 process.on('SIGINT', () => {
+	console.info('Shutting down...');
 	gpio.dispose();
+	app.httpServer?.close();
+	app.httpsServer?.close();
+	process.exit(1);
 });
 
 /* Enable Webpack's 'Hot Module Reload' functionality */
