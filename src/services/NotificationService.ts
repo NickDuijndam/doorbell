@@ -22,25 +22,33 @@ class NotificationService {
 		}
 		this.lastTimeTriggered = time;
 
-		(await Subscription.findAll()).forEach((sub) => {
-			sendNotification(sub.subscription, null, {
-			    TTL: 20,
-			    vapidDetails: {
-			        subject: `mailto: ${this.vapidEmail}`,
-			        publicKey: this.vapidPublicKey,
-			        privateKey: this.vapidPrivateKey,
-			    },
-			}).catch(error => {
-				switch (error.statusCode) {
+		for (const sub of (await Subscription.findAll())) {
+			try {
+				const result = await sendNotification(sub.subscription, null, {
+					TTL: 20,
+					vapidDetails: {
+						subject: `mailto: ${this.vapidEmail}`,
+						publicKey: this.vapidPublicKey,
+						privateKey: this.vapidPrivateKey,
+					},
+				});
+
+				if (result.statusCode != 201) {
+					console.warn(`Encountered unexpected status code sending a notification : ${result.statusCode}`, result)
+				}
+			} catch (e) {
+				switch (e.statusCode) {
 					/* Delete the subscription if it has 'gone' */
 					case 410:
 						sub.destroy();
 						break;
 					default:
-						throw error;
+						console.error(`An error occured whilst sending a notification`, e)
 				}
-			});
-		});
+			}
+
+
+		}
 	}
 
 }
