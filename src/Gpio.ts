@@ -43,8 +43,9 @@ class Gpio {
 			this.amountOfTimesTriggered += 1;
 		}
 
-		/* Disable the relay if it has been activated more then 7 times in the last minute */
+		/* Disable the relay if it has been activated more than 7 times in the last minute */
 		if (this.amountOfTimesTriggered < 15) {
+			console.debug(`Writing ${value ? rpio.LOW : rpio.HIGH} to relay pin`)
 			rpio.write(this.relayPin, value ? rpio.LOW : rpio.HIGH);
 		}
 

@@ -1,5 +1,5 @@
 const webpack = require('webpack');
-const merge = require('webpack-merge');
+const merge = require('webpack-merge').merge;
 const nodeExternals = require('webpack-node-externals');
 const path = require('path');
 const common = require('./webpack.common.ts');
@@ -12,7 +12,7 @@ module.exports = merge(common, {
 	],
 	externals: [
 		nodeExternals({
-			whitelist: ['webpack/hot/poll?100']
+			allowlist: ['webpack/hot/poll?100']
 		})
 	],
 	output: {

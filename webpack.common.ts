@@ -1,5 +1,3 @@
-const path = require('path');
-
 module.exports = {
 	entry: [
 		'./src/index.ts'
@@ -21,10 +19,13 @@ module.exports = {
 	resolve: {
 		extensions: ['.ts', '.js'],
 		alias: {
-			'@': path.resolve(__dirname, 'src'),
+			'@': require('path').resolve(__dirname, 'src'),
 		},
 	},
 	output: {
 		filename: 'index.js'
+	},
+	experiments: {
+		topLevelAwait: true,
 	}
 };

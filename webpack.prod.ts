@@ -1,6 +1,6 @@
 const webpack = require('webpack');
 const nodeExternals = require('webpack-node-externals');
-const merge = require('webpack-merge');
+const merge = require('webpack-merge').merge;
 const path = require('path');
 const common = require('./webpack.common.ts');
 
