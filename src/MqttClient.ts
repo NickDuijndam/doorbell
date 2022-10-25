@@ -49,7 +49,7 @@ class MqttClient {
 				type: 'action',
 				subtype: 'press',
 				payload: 'PRESS',
-			}), { retain: false });
+			}), { retain: true });
 
 			/* Subscribe to command topic, so we can receive messages from pressing the doorbell in home assistant */
 			await this.client.subscribe(this.pressCommandTopic, { qos : 1, nl: true })
