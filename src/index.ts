@@ -31,7 +31,13 @@ const mqtt = await MqttClient.connect(env.MQTT_HOST, env.MQTT_PORT, env.MQTT_USE
 /* Start listening to the GPIO */
 const gpio = new Gpio(env.GPIO_MAPPING, env.GPIO_BUTTON_PIN, env.GPIO_RELAY_PIN);
 
-gpio.addTask({ direction: POLL_HIGH, task: () => mqtt.press() });
+gpio.addTask({
+	direction: POLL_HIGH,
+	task: async () => {
+		console.debug("Doorbell pressed!")
+		await mqtt.press()
+	}
+});
 
 /* Allow the doorbell to be triggered through Home Assistant */
 mqtt.onPress(() => {
