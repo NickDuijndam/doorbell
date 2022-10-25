@@ -1,7 +1,7 @@
 import rpio from 'rpio';
 
 class Gpio {
-	private SLEEP = 20;
+	private SLEEP = 50;
 
 	buttonPin: number;
 	relayPin: number;
