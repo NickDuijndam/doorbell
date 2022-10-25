@@ -12,8 +12,8 @@ class MqttClient {
 		this.client = client
 		this.deviceId = deviceId
 
-		this.pressConfigTopic = `${topicPrefix}/button/${deviceId}/press/config`
-		this.pressCommandTopic = `${topicPrefix}/button/${deviceId}/press/action`
+		this.pressConfigTopic = `${topicPrefix}/device_automation/${deviceId}/press/config`
+		this.pressCommandTopic = `${topicPrefix}/device_automation/${deviceId}/press/action`
 	}
 
 	async press() {
@@ -37,6 +37,7 @@ class MqttClient {
 		try {
 			/* Publish button discovery message */
 			await this.client.publish(this.pressConfigTopic, JSON.stringify({
+				automation_type: 'trigger',
 				device: {
 					name: 'Doorbell',
 					identifiers: [ this.deviceId ],
@@ -44,7 +45,10 @@ class MqttClient {
 				name: 'Doorbell',
 				icon: 'mdi:doorbell',
 				unique_id: `${this.deviceId}_button`,
-				command_topic: this.pressCommandTopic,
+				topic: this.pressCommandTopic,
+				type: 'action',
+				subtype: 'press',
+				payload: 'PRESS',
 			}), { retain: false });
 
 			/* Subscribe to command topic, so we can receive messages from pressing the doorbell in home assistant */
@@ -65,6 +69,7 @@ class MqttClient {
 			port: port,
 			username: username,
 			password: password,
+			protocolVersion: 5,
 		}), topicPrefix, deviceId)
 
 		await client.publishDiscoveryMessages()

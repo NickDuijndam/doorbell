@@ -28,7 +28,7 @@ class Gpio {
 	poll(pin: number, mockValue?: number) {
 		rpio.msleep(this.SLEEP);
 
-		const value = mockValue || rpio.read(pin);
+		const value = mockValue === undefined ? rpio.read(pin) : mockValue;
 
 		if (this.previousState != null && this.previousState == value) {
 			return;
@@ -45,7 +45,7 @@ class Gpio {
 
 		/* Disable the relay if it has been activated more than 7 times in the last minute */
 		if (this.amountOfTimesTriggered < 15) {
-			console.debug(`Writing ${value ? rpio.LOW : rpio.HIGH} to relay pin`);
+			console.debug(`Writing ${value} ${value ? rpio.LOW + ' LOW' : rpio.HIGH + ' HIGH'} to relay pin`);
 			rpio.write(this.relayPin, value ? rpio.LOW : rpio.HIGH);
 		}
 

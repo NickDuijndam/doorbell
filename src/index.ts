@@ -48,10 +48,10 @@ mqtt.onPress(() => {
 })
 
 /* Dispose of all used resources on process termination */
-process.on('SIGINT', async () => {
+process.on('SIGINT', () => {
 	console.info('Shutting down...');
 	gpio.dispose();
-	await mqtt.disconnect();
+	mqtt.disconnect();
 });
 
 /* Enable Webpack's 'Hot Module Reload' functionality */
@@ -60,5 +60,6 @@ if (module.hot) {
 	module.hot.accept();
 	module.hot.dispose(() => {
 		gpio.dispose();
+		mqtt.disconnect();
 	});
 }
